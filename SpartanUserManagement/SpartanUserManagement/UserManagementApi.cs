@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using SpartanLogging;
 using SpartanSettings;
+using SpartanEnvironment;
 using SpartanExtensions.Strings;
 using SpartanExtensions.Objects;
 
@@ -12,18 +11,20 @@ namespace SpartanUserManagement
     {
         private static ISetting _setting;
         private static ILogging _logging;
+        private static IEnviroment _env;
         private static string _configPath;
         public string Environment { get; set; }
         public string ConnectionString { get; set; }
         public string DevConnectionString { get; set; }
         public string StagingConnectionString { get; set; }
-        public int Timeout { get; set; }
+        public int Timeout { get; set; } = 20;
         public string EncryptKey { get; set; }
 
         public UserManagementApi()
         {
             _setting = new Setting();
             _logging = new Logging();
+            _env = new SpartanEnvironment.Environment();
             _configPath = _setting.CreateModuleSetting("usermanagement");
             SetDbParameters();
 
@@ -42,7 +43,7 @@ namespace SpartanUserManagement
                 {
 
                     var cTemp = _configPath.LoadAsJsonType();
-                    Environment = cTemp.ContainsKey("Environment") ? (string)cTemp.GetValue("Environment") : "";
+                    Environment = _env.GetUserVariable("Environment");
                     ConnectionString = cTemp.ContainsKey("ConnectionString") ? (string)cTemp.GetValue("ConnectionString") : "";
                     DevConnectionString = cTemp.ContainsKey("DevConnectionString") ? (string)cTemp.GetValue("DevConnectionString") : "";
                     StagingConnectionString = cTemp.ContainsKey("StagingConnectionString") ? (string)cTemp.GetValue("StagingConnectionString") : "";
@@ -60,6 +61,7 @@ namespace SpartanUserManagement
                         }
                     }
 
+                    //ConnectionString (default)
                     if (string.IsNullOrWhiteSpace(ConnectionString))
                     {
                         _errorMsg = $"A user managemenet configuration file was created in {_configPath}. This configuration is missing a connection string parameter";
@@ -84,7 +86,6 @@ namespace SpartanUserManagement
                 {
                     _configPath.SaveTo(this.SerializeToJson());
                     _logging.Error("UserManagementApi:GetDbConnectinConnectionString", ex.ToJsonString());
-                    retVal = string.Empty;
                 }
             }
         }

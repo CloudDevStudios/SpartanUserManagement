@@ -4,4 +4,12 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="1.50.5" />
+    <PackageReference Include="SpartanAppExtensions" Version="1.0.3" />
+    <PackageReference Include="SpartanEnvironment" Version="1.0.2" />
+    <PackageReference Include="SpartanLogging" Version="1.0.2" />
+    <PackageReference Include="SpartanSettings" Version="1.0.5" />
+  </ItemGroup>
+
 </Project>
