@@ -4,6 +4,8 @@ namespace SpartanUserManagement
     public class UserResponse
     {
         public Guid Id { get; set; }
+        public string Status { get; set; }
+        public string Msg { get; set; }
         public string AppName { get; set; }
         public string UserName { get; set; }
         public string Type { get; set; }
