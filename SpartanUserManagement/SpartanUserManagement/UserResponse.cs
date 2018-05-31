@@ -34,6 +34,12 @@ namespace SpartanUserManagement
         public string Avatar { get; set; }
         public string About { get; set; }
         public DateTime? DoB { get; set; }
+        public bool IsActive { get; set; }
+        public short AccessFailedCount { get; set; }
+        public bool LockEnabled { get; set; }
+        public string LockoutDescription { get; set; }
         public Guid? ReportsToId { get; set; }
+        public DateTime DateCreated { get; set; }
+        public DateTime LastUpdated { get; set; }
     }
 }

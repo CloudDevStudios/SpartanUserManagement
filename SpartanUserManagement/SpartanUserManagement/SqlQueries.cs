@@ -27,16 +27,20 @@ namespace SpartanUserManagement
                                                         State,
                                                         Province,
                                                         ZipCode,
-										                Country,
-										                WebPage,
-										                Avatar,
-										                About,
-										                DoB,
-										                IsActive,
-										                ReportsToId
-								                FROM	Users
-								                WHERE	Id = @Id;";
-
+														Country,
+														WebPage,
+														Avatar,
+														About,
+														DoB,
+														IsActive,
+								                    	AccessFailedCount,
+								                    	LockEnabled,
+								                    	LockoutDescription,
+								                    	ReportsToId,
+								                    	DateCreated,
+								                    	LastUpdated
+												FROM	Users
+												WHERE	Id = @Id;";
 
         public static String GetUserByUserName_Sql = @"SELECT	Id,
                                                         AppName,
@@ -62,15 +66,20 @@ namespace SpartanUserManagement
                                                         State,
                                                         Province,
                                                         ZipCode,
-										                Country,
-										                WebPage,
-										                Avatar,
-										                About,
-										                DoB,
-										                IsActive,
-										                ReportsToId
-								                FROM	Users
-								                WHERE	UserName = @Username;";
+														Country,
+														WebPage,
+														Avatar,
+														About,
+														DoB,
+														IsActive,
+								                    	AccessFailedCount,
+								                    	LockEnabled,
+								                    	LockoutDescription,
+								                    	ReportsToId,
+								                    	DateCreated,
+								                    	LastUpdated
+												FROM	Users
+												WHERE	UserName = @Username;";
 
         public static String GetUserByEmail_Sql = @"SELECT	Id,
                                                         AppName,
@@ -96,17 +105,22 @@ namespace SpartanUserManagement
                                                         State,
                                                         Province,
                                                         ZipCode,
-										                Country,
-										                WebPage,
-										                Avatar,
-										                About,
-										                DoB,
-										                IsActive,
-										                ReportsToId
-								                FROM	Users
-								                WHERE	Email = @email;";
+														Country,
+														WebPage,
+														Avatar,
+														About,
+														DoB,
+														IsActive,
+								                    	AccessFailedCount,
+								                    	LockEnabled,
+								                    	LockoutDescription,
+								                    	ReportsToId,
+								                    	DateCreated,
+								                    	LastUpdated
+												FROM	Users
+												WHERE	Email = @email;";
 
-        public static String GetAllUsers_Sql = @"SELECT	Id,
+        public static String GetActiveUsers_Sql = @"SELECT	Id,
 										                AppName,
 										                UserName,
 										                Type,
@@ -135,14 +149,28 @@ namespace SpartanUserManagement
 										                Avatar,
 										                About,
 										                DoB,
-										                IsActive
-								                FROM	Users;";
-
+										                IsActive,
+								                    	AccessFailedCount,
+								                    	LockEnabled,
+								                    	LockoutDescription,
+								                    	ReportsToId,
+								                    	DateCreated,
+								                    	LastUpdated
+								                FROM	Users
+                                                WHERE   IsActive = 1
+                                                AND     LockEnabled = 0";
 
         //Only for Development and UnitTesting
-        public static string DeleteAllUsers_Sql = @"DELETE FROM USERS";
+        public static String DeleteAllUsers_Sql = @"DELETE FROM USERS";
 
-        public static String AddUser_Sql = @"INSERT INTO [Users]
+        //Use this to Delete or Restore an Account
+        public static String DisableUser_Sql = @"UPDATE	Users
+												SET	    IsActive = 0,
+														LastUpdated = GETDATE()
+												WHERE	Id = @Id;";
+
+    
+    public static String AddUser_Sql = @"INSERT INTO Users
 								                    (
 								                    	Id,
 								                    	AppName,
@@ -223,5 +251,45 @@ namespace SpartanUserManagement
 								                    	@LastUpdated
 								                    );";
 
+        public static String UpdateUser_Sql = @"UPDATE	Users
+												SET	AppName = @AppName,
+														UserName = @UserName,
+														PasswordHash = @PasswordHash,
+														Type = @Type,
+														Company = @Company,
+														FirstName = @FirstName,
+														MiddleName = @MiddleName,
+														LastName = @LastName,
+														Gender = @Gender,
+														MaritalStatus = @MaritalStatus,
+														Email = @Email,
+														EmailSignature = @EmailSignature,
+														EmailProvider = @EmailProvider,
+														JobTitle = @JobTitle,
+														BusinessPhone = @BusinessPhone,
+														HomePhone = @HomePhone,
+														MobilePhone = @MobilePhone,
+														FaxNumber = @FaxNumber,
+														Address = @Address,
+														Address1 = @Address1,
+														City = @City,
+														State = @State,
+														Province = @Province,
+														ZipCode = @ZipCode,
+														Country = @Country,
+														WebPage = @WebPage,
+														Avatar = @Avatar,
+														About = @About,
+														DoB = @DoB,
+														IsActive = @IsActive,
+														AccessFailedCount = @AccessFailedCount,
+														LockEnabled = @LockEnabled,
+														LockoutDescription = @LockoutDescription,
+														ReportsToId = @ReportsToId,
+														DateCreated = @DateCreated,
+														LastUpdated = @LastUpdated
+												WHERE	Id = @Id;";
+
     }
+
 }

@@ -1,19 +1,19 @@
 ﻿using System;
-using SpartanLogging;
-using SpartanSettings;
-using SpartanEnvironment;
-using SpartanExtensions.Strings;
-using SpartanExtensions.Objects;
-using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using Dapper;
 using System.Linq;
+using System.Threading.Tasks;
+using Dapper;
+using SpartanEnvironment;
+using SpartanExtensions.Objects;
+using SpartanExtensions.Strings;
+using SpartanLogging;
+using SpartanSettings;
 
 namespace SpartanUserManagement
 {
-    public class UserManagementApi  : IUserManagement
+    public class UserManagementApi : IUserManagement
     {
         private static ISetting _setting;
         private static ILogging _logging;
@@ -109,7 +109,7 @@ namespace SpartanUserManagement
         /// Returns list of All UserResponses
         /// </summary>
         /// <returns>Collection List of UserResponses</returns>
-        public async Task<List<UserResponse>> GetAllUsers()
+        public async Task<List<UserResponse>> GetActiveUsers()
         {
             _users = new List<UserResponse>();
             var _errorTile = "UserManagementApi:GetAllUsers";
@@ -129,7 +129,7 @@ namespace SpartanUserManagement
                         if (db.State == ConnectionState.Closed)
                             db.Open();
 
-                        _users = db.Query<UserResponse>(SqlQueries.GetAllUsers_Sql).ToList();
+                        _users = db.Query<UserResponse>(SqlQueries.GetActiveUsers_Sql).ToList();
                     }
                 }
                 catch (Exception ex)
@@ -164,7 +164,7 @@ namespace SpartanUserManagement
                         if (db.State == ConnectionState.Closed)
                             db.Open();
 
-                        _user = db.QueryFirst<User>(SqlQueries.GetUserById_Sql, new {Id = id });
+                        _user = db.QueryFirst<User>(SqlQueries.GetUserById_Sql, new { Id = id });
                     }
                 }
                 catch (Exception ex)
@@ -194,7 +194,6 @@ namespace SpartanUserManagement
             //ConnectionString check
             if (string.IsNullOrWhiteSpace(ConnectionString))
                 return ResponseError_ModelView(_errorTile, "No Connection to db was found");
-   
 
             return await Task.Run(() =>
             {
@@ -237,7 +236,6 @@ namespace SpartanUserManagement
             if (string.IsNullOrWhiteSpace(ConnectionString))
                 return ResponseError_ModelView(_errorTile, "No Connection to db was found");
 
-
             return await Task.Run(() =>
             {
                 try
@@ -267,9 +265,9 @@ namespace SpartanUserManagement
         /// </summary>
         /// <param name="user"></param>
         /// <returns>UserResponse</returns>
-        public async Task<UserResponse> AddUserByUserName(User user)
+        public async Task<UserResponse> AddUserWithUserName(User user)
         {
-            
+
             var _userResponse = new UserResponse();
             var _userTemp = new UserResponse();
             int _rowsAffected = 0;
@@ -282,7 +280,6 @@ namespace SpartanUserManagement
             //UserName parameter check
             if (string.IsNullOrWhiteSpace(user.UserName))
                 return ResponseError_ModelView(_errorTile, "UserName can not be empty");
-
 
             //UserName only one UserName can be added
             _userTemp = await GetUserByUserName(user.UserName);
@@ -298,10 +295,10 @@ namespace SpartanUserManagement
                 return ResponseError_ModelView(_errorTile, "Email already exist");
 
             //Verify if User exist by email
-            if(user.Id != Guid.Empty)
+            if (user.Id != Guid.Empty)
             {
-                var userTemp = await GetUserById(user.Id);
-                if (userTemp != null && !string.IsNullOrWhiteSpace(userTemp.Email))
+                _userTemp = await GetUserById(user.Id);
+                if (_userTemp != null && !string.IsNullOrWhiteSpace(_userTemp.Email))
                     return ResponseError_ModelView(_errorTile, "User with this email already exist");
             }
 
@@ -314,27 +311,26 @@ namespace SpartanUserManagement
             if (string.IsNullOrWhiteSpace(ConnectionString))
                 return ResponseError_ModelView(_errorTile, "No Connection to db was found");
 
-
             return await Task.Run(() =>
             {
                 try
                 {
                     using (IDbConnection db = new SqlConnection(ConnectionString))
                     {
-                        if (db.State == ConnectionState.Closed)                    
+                        if (db.State == ConnectionState.Closed)
                             db.Open();
-                        
+
                         user.Id = (user.Id == Guid.Empty) ? Guid.NewGuid() : user.Id;
                         user.PasswordHash = user.PasswordHash.EncryptString(EncryptKey);
                         user.IsActive = true;
                         user.AccessFailedCount = 0;
                         user.LockEnabled = false;
                         user.LockoutDescription = string.Empty;
-                        user.ReportsToId = null;
                         user.DateCreated = DateTime.Now;
                         user.LastUpdated = user.DateCreated;
 
-                        _rowsAffected = db.Execute(SqlQueries.AddUser_Sql, new {
+                        _rowsAffected = db.Execute(SqlQueries.AddUser_Sql, new
+                        {
                             user.Id,
                             user.AppName,
                             user.UserName,
@@ -368,7 +364,7 @@ namespace SpartanUserManagement
                             user.IsActive,
                             user.AccessFailedCount,
                             user.LockEnabled,
-                            user.LockoutDescription,                            
+                            user.LockoutDescription,
                             user.ReportsToId,
                             user.DateCreated,
                             user.LastUpdated
@@ -393,6 +389,121 @@ namespace SpartanUserManagement
         }
 
 
+        public async Task<UserResponse> AddUserWithEmail(User user)
+        {
+
+            var _userResponse = new UserResponse();
+            var _userTemp = new UserResponse();
+            int _rowsAffected = 0;
+            var _errorTile = "UserManagementApi:AddUserByUserName";
+
+            //User parameter
+            if (user == null)
+                return ResponseError_ModelView(_errorTile, "user parameter can not be empty/null");
+
+            //Email parameter check
+            if (string.IsNullOrWhiteSpace(user.Email) || !user.Email.IsValidEmail())
+                return ResponseError_ModelView(_errorTile, "Invalid Email");
+
+            _userTemp = await GetUserByEmail(user.Email);
+            if (_userTemp.Status.Equals("ok") && !string.IsNullOrWhiteSpace(_userTemp.Email))
+                return ResponseError_ModelView(_errorTile, "Email already exist");
+
+            //Verify if User exist by email
+            if (user.Id != Guid.Empty)
+            {
+                var userTemp = await GetUserById(user.Id);
+                if (userTemp != null && !string.IsNullOrWhiteSpace(userTemp.Email))
+                    return ResponseError_ModelView(_errorTile, "User with this email already exist");
+            }
+
+            //Password parameter check
+            var passwValidationPhrase = GetPasswordValidationPhrase(user.PasswordHash);
+            if (passwValidationPhrase != "VALID")
+                return ResponseError_ModelView(_errorTile, passwValidationPhrase);
+
+            //Connection String
+            if (string.IsNullOrWhiteSpace(ConnectionString))
+                return ResponseError_ModelView(_errorTile, "No Connection to db was found");
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    using (IDbConnection db = new SqlConnection(ConnectionString))
+                    {
+                        if (db.State == ConnectionState.Closed)
+                            db.Open();
+
+                        user.Id = (user.Id == Guid.Empty) ? Guid.NewGuid() : user.Id;
+                        user.PasswordHash = user.PasswordHash.EncryptString(EncryptKey);
+                        user.IsActive = true;
+                        user.AccessFailedCount = 0;
+                        user.LockEnabled = false;
+                        user.LockoutDescription = string.Empty;
+                        user.ReportsToId = null;
+                        user.DateCreated = DateTime.Now;
+                        user.LastUpdated = user.DateCreated;
+
+                        _rowsAffected = db.Execute(SqlQueries.AddUser_Sql, new
+                        {
+                            user.Id,
+                            user.AppName,
+                            user.UserName,
+                            user.PasswordHash,
+                            user.Type,
+                            user.Company,
+                            user.FirstName,
+                            user.MiddleName,
+                            user.LastName,
+                            user.Gender,
+                            user.MaritalStatus,
+                            user.Email,
+                            user.EmailSignature,
+                            user.EmailProvider,
+                            user.JobTitle,
+                            user.BusinessPhone,
+                            user.HomePhone,
+                            user.MobilePhone,
+                            user.FaxNumber,
+                            user.Address,
+                            user.Address1,
+                            user.City,
+                            user.State,
+                            user.Province,
+                            user.ZipCode,
+                            user.Country,
+                            user.WebPage,
+                            user.Avatar,
+                            user.About,
+                            user.DoB,
+                            user.IsActive,
+                            user.AccessFailedCount,
+                            user.LockEnabled,
+                            user.LockoutDescription,
+                            user.ReportsToId,
+                            user.DateCreated,
+                            user.LastUpdated
+                        });
+                    }
+
+                    //Make sure execute fuction suceeded
+                    if (_rowsAffected <= 0)
+                        return ResponseError_ModelView(_errorTile, $"No records were inserted. Row Affected were {_rowsAffected}");
+
+                    //Only show ModelView response
+                    _userResponse = ResponseOk_ModelView(user);
+
+                }
+                catch (Exception ex)
+                {
+                    _logging.Error("UserManagementApi:GetUserById", ex.ToString());
+                }
+
+                return _userResponse;
+            });
+        }
+
         /// <summary>
         /// Deletes all users. This function only works in "Development"
         /// environment.
@@ -410,7 +521,7 @@ namespace SpartanUserManagement
                 ResponseError_ModelView(_errorTile, "No Connection to db was found");
                 _isValid = false;
             }
-                
+
             //Connection String
             if (string.IsNullOrWhiteSpace(ConnectionString))
             {
@@ -441,6 +552,60 @@ namespace SpartanUserManagement
             });
         }
 
+        public async Task<UserResponse> DisableUserAccount(Guid id)
+        {
+            var _userResponse = new UserResponse();
+            var _user = new User();
+            var _errorTile = "UserManagementApi:DisableUserAccount";
+            var _rowsAffected = 0;
+
+            //Id parameter check
+            if (id == Guid.Empty)
+            {
+                return ResponseError_ModelView(_errorTile, "Id can not be empty");
+            }
+            else
+            {
+                //Make sure the User exist
+                _userResponse = await GetUserById(id);
+                if (_userResponse != null && string.IsNullOrWhiteSpace(_userResponse.Email))
+                {
+                    return ResponseError_ModelView(_errorTile, "User does not exist");
+                }
+
+            }
+
+            //ConnectionString check
+            if (string.IsNullOrWhiteSpace(ConnectionString))
+                return ResponseError_ModelView(_errorTile, "No Connection to db was found");
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+
+                    using (IDbConnection db = new SqlConnection(ConnectionString))
+                    {
+                        if (db.State == ConnectionState.Closed)
+                            db.Open();
+
+                        _rowsAffected = db.Execute(SqlQueries.DisableUser_Sql, new { Id = id });
+                        _logging.Info(_errorTile, $"Users Rows Deleted {_rowsAffected}");
+                    }
+
+                    if(_rowsAffected <= 0)
+                        return ResponseError_ModelView(_errorTile, $"No Records were affected while updating userid: {_userResponse.Id.ToString()}");
+
+                }
+                catch (Exception ex)
+                {
+                    _logging.Error(_errorTile, ex.ToString());
+                }
+                //all passed.
+                _userResponse.IsActive = false;
+                return _userResponse;
+            });
+        }
 
         public void UpdateUser(User user)
         {
@@ -452,12 +617,10 @@ namespace SpartanUserManagement
             throw new NotImplementedException();
         }
 
-
         public string GetPasswordValidationPhrase(string value)
         {
             if (value.Length < PasswordMin || value.Length > PasswordMax)
                 return $"min {PasswordMin} chars, max {PasswordMax} chars";
-
 
             if (value.Contains(" "))
                 return "Can not have white space";
@@ -468,13 +631,11 @@ namespace SpartanUserManagement
                     return "At least 1 upper case letter";
             }
 
-
             if (RequireLowerCase)
             {
                 if (!value.Any(char.IsLower))
                     return "At least 1 lower case letter";
             }
-
 
             if (AvoidNoTwoSimilarChars)
             {
@@ -484,7 +645,6 @@ namespace SpartanUserManagement
                         return "No two similar chars consecutively";
                 }
             }
-
 
             //At least 1 special char
             if (RequireSpecialChars)
@@ -511,7 +671,7 @@ namespace SpartanUserManagement
             _userResponse.Msg = msg;
             return _userResponse;
         }
-    
+
         private UserResponse ResponseOk_ModelView(User user)
         {
             UserResponse userResponse = new UserResponse();
@@ -546,9 +706,19 @@ namespace SpartanUserManagement
             userResponse.Avatar = user.Avatar;
             userResponse.About = user.About;
             userResponse.DoB = user.DoB;
+            userResponse.IsActive = user.IsActive;
+            userResponse.AccessFailedCount = user.AccessFailedCount;
+            userResponse.LockEnabled = user.LockEnabled;
+            userResponse.LockoutDescription = user.LockoutDescription;
             userResponse.ReportsToId = user.ReportsToId;
+            userResponse.DateCreated = user.DateCreated;
+            userResponse.LastUpdated = user.LastUpdated;
             return userResponse;
         }
 
+        public Task<UserResponse> LockUserAccount(Guid id, string description)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
