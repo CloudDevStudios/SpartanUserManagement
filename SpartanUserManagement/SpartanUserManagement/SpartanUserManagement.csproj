@@ -12,4 +12,8 @@
     <PackageReference Include="SpartanSettings" Version="1.0.5" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Database\" />
+  </ItemGroup>
+
 </Project>

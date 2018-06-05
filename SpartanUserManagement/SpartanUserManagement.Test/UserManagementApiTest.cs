@@ -7,6 +7,8 @@ namespace SpartanUserManagement.Test
     [TestClass]
     public class UserManagementApiTest
     {
+        private UserManagementApi _users;
+        private User _user;
         private static IEnviroment _env;
         [TestMethod]
         public void TestUserManagementSettings()
@@ -16,7 +18,6 @@ namespace SpartanUserManagement.Test
             var _ums = new UserManagementApi();
             var _testConnection = _ums.ConnectionString;
             var _testEnvString = _ums.Environment;
-
             Assert.IsTrue(_testEnvString.Equals("Development"));
             Assert.IsTrue(!string.IsNullOrWhiteSpace(_testConnection), "No Connection found");
 
@@ -26,54 +27,62 @@ namespace SpartanUserManagement.Test
         public async System.Threading.Tasks.Task TestAddNewUserByUserNameAsync()
         {
             _env = new Environment();
-            var _users = new UserManagementApi();
+            _users = new UserManagementApi();
             _env.SetUserVariable("Environment", "Development");
+            _user = new User();
 
-            var user = new SpartanUserManagement.User();
-            var user2 = new SpartanUserManagement.User();
-            var user3 = new SpartanUserManagement.User();
-            user.UserName = "cperez";
-            user.FirstName = "carlos";
-            user.LastName = "perez";
-            user.PasswordHash = "TestGoog!e1";
-            user.Email = "cperez@donotreply.com";
-            //user.DateCreated = DateTime.Now;
+            //1- Create Dummy User
+            _user.Id = System.Guid.Parse("F037567D-54BC-4044-A6F4-66A7E85A0E34");
+            _user.UserName = "cperez";
+            _user.GivenName = "carlos";
+            _user.SurName = "perez";
+            _user.PasswordHash = "TestGoog!e1";
+            _user.Email = "cperez@donotreply.com";
 
-            //With User
-            user2.UserName = "hPerez";
-            user2.FirstName = "Hermes";
-            user2.LastName = "Perez";
-            user2.PasswordHash = "PerezGoolG!1";
-            user2.Email = "hperez@donotreply.com";
-
-            //No user but Email
-
-            user3.FirstName = "Jorge";
-            user3.LastName = "Perez";
-            user3.PasswordHash = "PerezGool!";
-            user3.Email = "jperez@donotreply.com";
-
-            //Delete records only for Development environment
+            //2- Delete records only for Development environment
             await _users.DeleteAllUsers();
-            //Add user1
-            var _userResponse = await _users.AddUserWithUserName(user);
+
+
+            //3- Add User Records
+            var _userResponse = await _users.AddOrUpdateUserWithUserName(_user);
             Assert.IsTrue(_userResponse.Status.Equals("ok"), _userResponse.Msg);
 
-            //Add User by UserName
-            _userResponse = await _users.AddUserWithUserName(user2);
+            //4- Update User - changed username and same password
+            _user.UserName = "cperez1";
+            _user.PasswordHash = "TestGoog!e1";
+            _userResponse = await _users.AddOrUpdateUserWithUserName(_user);
             Assert.IsTrue(_userResponse.Status.Equals("ok"), _userResponse.Msg);
 
-            //Add User by Email
-            _userResponse = await _users.AddUserWithEmail(user3);
-            Assert.IsTrue(_userResponse.Status.Equals("ok"), _userResponse.Msg);
+            //5- Lock The Account
+            _userResponse = await _users.SetLockState(_user.Id, "This account is locked due to payments", true);
+            Assert.IsTrue(_userResponse.LockEnabled, _userResponse.Msg);
 
-            //disable the account and verify
             System.Threading.Thread.Sleep(500);
-            var tempId = _userResponse.Id;
-            _userResponse = await _users.DisableUserAccount(tempId);
+
+            //5- Unlock The Account
+            _userResponse = await _users.SetLockState(_user.Id, "Payments Received for $200", false);
+            Assert.IsTrue(!_userResponse.LockEnabled, _userResponse.Msg);
+
+            //6- Disable the account and verify
+            System.Threading.Thread.Sleep(500);
+            _userResponse = await _users.SetActiveState(_user.Id, "Deleting the Account for Temp reasons!", false);
             Assert.IsTrue(!_userResponse.IsActive, "failed to disable the user account");
 
 
+            //7- Enable the account and verify
+            System.Threading.Thread.Sleep(500);
+            _userResponse = await _users.SetActiveState(_user.Id, "Found the Problem. Account was enable after receiving the email from Peter", true);
+            Assert.IsTrue(_userResponse.IsActive, "failed to enable the user account");
+
+            //8- Find User By UserName
+            _userResponse = await _users.GetUserByUserName("cperez1");
+            Assert.IsTrue((_userResponse.Status.Equals("ok") && _userResponse.Email.Equals("cperez@donotreply.com")), _userResponse.Msg);
+
+            //9- Find User By Email
+            _userResponse = await _users.GetUserByEmail("cperez@donotreply.com");
+            Assert.IsTrue((_userResponse.Status.Equals("ok") && _userResponse.UserName.Equals("cperez1")), _userResponse.Msg);
+
+            //7- Verify User Counts
             var _userList = await _users.GetActiveUsers();
             Assert.IsTrue(_userList.Count > 0, "Failed to Retrived All Users");
         }
