@@ -1,6 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SpartanEnvironment;
-//using System;
 
 namespace SpartanUserManagement.Test
 {
@@ -82,8 +81,13 @@ namespace SpartanUserManagement.Test
             _userResponse = await _users.GetUserByEmail("cperez@donotreply.com");
             Assert.IsTrue((_userResponse.Status.Equals("ok") && _userResponse.UserName.Equals("cperez1")), _userResponse.Msg);
 
-            //7- Verify User Counts
+            //10- Delete the User Account 
+            _userResponse = await _users.DeleteUserAccount(_user.Id, "Testing Delete Account");
             var _userList = await _users.GetActiveUsers();
+            Assert.IsTrue(_userList.Count == 0, "Failed to Delete Account");
+
+            //7- Verify User Counts
+            _userList = await _users.GetActiveUsers();
             Assert.IsTrue(_userList.Count > 0, "Failed to Retrived All Users");
         }
     }

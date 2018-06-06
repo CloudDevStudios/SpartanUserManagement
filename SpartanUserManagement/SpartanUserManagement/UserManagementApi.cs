@@ -157,21 +157,15 @@ namespace SpartanUserManagement
 
             return await Task.Run(() =>
             {
-                try
+                _user = GetUser(SqlQueries.GetUserById_Sql, new { Id = id });
+                if (_user != null)
                 {
-                    using (IDbConnection db = new SqlConnection(ConnectionString))
-                    {
-                        if (db.State == ConnectionState.Closed)
-                            db.Open();
-
-                        _user = db.QueryFirst<User>(SqlQueries.GetUserById_Sql, new { Id = id });
-                    }
+                    _userResponse = ResponseOk_ModelView(_user);
                 }
-                catch (Exception ex)
+                else
                 {
-                    _logging.Error("UserManagementApi:GetUserById", ex.ToString());
-                }
-                _userResponse = ResponseOk_ModelView(_user);
+                    _userResponse = ResponseError_ModelView(_errorTile, "User was not found");
+                }                
                 return _userResponse;
             });
         }
@@ -197,22 +191,15 @@ namespace SpartanUserManagement
 
             return await Task.Run(() =>
             {
-                try
+                _user = GetUser(SqlQueries.GetUserByUserName_Sql, new { UserName = username });
+                if (_user != null)
                 {
-                    using (IDbConnection db = new SqlConnection(ConnectionString))
-                    {
-                        if (db.State == ConnectionState.Closed)
-                            db.Open();
-
-                        _user = db.QueryFirst<User>(SqlQueries.GetUserByUserName_Sql, new { UserName = username }, commandType: CommandType.StoredProcedure);
-                    }
+                    _userResponse = ResponseOk_ModelView(_user);
                 }
-                catch (Exception ex)
+                else
                 {
-                    _logging.Error(_errorTile, ex.ToString());
+                    _userResponse = ResponseError_ModelView(_errorTile, "User was not found");
                 }
-
-                _userResponse = ResponseOk_ModelView(_user);
                 return _userResponse;
             });
         }
@@ -242,22 +229,15 @@ namespace SpartanUserManagement
 
             return await Task.Run(() =>
             {
-                try
+                _user = GetUser(SqlQueries.GetUserByEmail_Sql, new { Email = email });
+                if (_user != null)
                 {
-                    using (IDbConnection db = new SqlConnection(ConnectionString))
-                    {
-                        if (db.State == ConnectionState.Closed)
-                            db.Open();
-
-                        _user = db.QueryFirst<User>(SqlQueries.GetUserByEmail_Sql, new { Email = email }, commandType: CommandType.StoredProcedure);
-                    }
+                    _userResponse = ResponseOk_ModelView(_user);
                 }
-                catch (Exception ex)
+                else
                 {
-                    _logging.Error(_errorTile, ex.ToString());
+                    _userResponse = ResponseError_ModelView(_errorTile, "User was not found");
                 }
-
-                _userResponse = ResponseOk_ModelView(_user);
                 return _userResponse;
             });
         }
@@ -292,14 +272,6 @@ namespace SpartanUserManagement
             if (string.IsNullOrWhiteSpace(user.Email) || !user.Email.IsValidEmail())
                 return ResponseError_ModelView(_errorTile, "Invalid Email");
 
-
-            //Verify if User exist by email
-            if (user.Id != Guid.Empty)
-            {
-                _userTemp = await GetUserById(user.Id);
-                if (_userTemp != null && !string.IsNullOrWhiteSpace(_userTemp.Email))
-                    return ResponseError_ModelView(_errorTile, "User with this email already exist");
-            }
 
             //Password parameter check
             var passwValidationPhrase = GetPasswordValidationPhrase(user.PasswordHash);
@@ -357,13 +329,6 @@ namespace SpartanUserManagement
             if (_userTemp.Status.Equals("ok") && !string.IsNullOrWhiteSpace(_userTemp.Email))
                 return ResponseError_ModelView(_errorTile, "Email already exist");
 
-            //Verify if User exist by email
-            if (user.Id != Guid.Empty)
-            {
-                var userTemp = await GetUserById(user.Id);
-                if (userTemp != null && !string.IsNullOrWhiteSpace(userTemp.Email))
-                    return ResponseError_ModelView(_errorTile, "User with this email already exist");
-            }
 
             //Password parameter check
             var passwValidationPhrase = GetPasswordValidationPhrase(user.PasswordHash);
@@ -509,6 +474,11 @@ namespace SpartanUserManagement
             });
         }
 
+        public async Task<UserResponse> DeleteUserAccount(Guid id, string description)
+        {
+            return await SetActiveState(id, description, false);
+        }
+
         /// <summary>
         /// Sets IsActive field.
         /// helper function to facilites (delete) disable/enable behaviors
@@ -539,7 +509,7 @@ namespace SpartanUserManagement
 
             return await Task.Run(() =>
             {
-                _user = GetUser(id);
+                _user = GetUser(SqlQueries.GetUserById_Sql, new { Id = id });
                 if (_user != null && !string.IsNullOrWhiteSpace(_user.Email))
                 {
                     _user.IsActive = isActive;
@@ -577,7 +547,7 @@ namespace SpartanUserManagement
 
             return await Task.Run(() =>
             {
-                _user = GetUser(id);
+                _user = GetUser(SqlQueries.GetUserById_Sql, new { Id = id });
                 if (_user != null && !string.IsNullOrWhiteSpace(_user.Email))
                 {
                     _user.LockEnabled = isLocked;
@@ -594,7 +564,7 @@ namespace SpartanUserManagement
         }
 
 
-        private User GetUser(Guid id)
+        private User GetUser(string spname, object param)
         {
             var _user = new User();
             var _errorTitle = "UserManagementApi:GetUser";
@@ -605,7 +575,7 @@ namespace SpartanUserManagement
                     if (db.State == ConnectionState.Closed)
                         db.Open();
 
-                    _user = db.QueryFirst<User>(SqlQueries.GetUserById_Sql, new { Id = id }, commandType: CommandType.StoredProcedure);
+                    _user = db.QueryFirst<User>(spname, param, commandType: CommandType.StoredProcedure);
                 }
             }
             catch (Exception ex)
@@ -716,5 +686,9 @@ namespace SpartanUserManagement
             return userResponse;
         }
 
+        public Task<UserResponse> ResetPassword(string email, string currentpassword, string confirmedpassword)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

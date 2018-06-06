@@ -15,5 +15,8 @@ namespace SpartanUserManagement
         Task<UserResponse> AddOrUpdateUserWithEmail(User user);
         Task<UserResponse> SetActiveState(Guid id, string description, bool isActive);
         Task<UserResponse> SetLockState(Guid id, string description, bool isLocked);
+        Task<UserResponse> ResetPassword(string email, string currentpassword, string confirmedpassword);
+        Task<UserResponse> DeleteUserAccount(Guid id, string description);
+
     }
 }
