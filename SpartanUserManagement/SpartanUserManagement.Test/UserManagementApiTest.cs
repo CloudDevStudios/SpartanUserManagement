@@ -86,6 +86,41 @@ namespace SpartanUserManagement.Test
             var _userList = await _users.GetActiveUsers();
             Assert.IsTrue(_userList.Count == 0, "Failed to Delete Account");
 
+            //11- Set the Account Active again
+            _userResponse = await _users.SetActiveState(_user.Id, "User is back", true);
+            Assert.IsTrue(_userResponse.IsActive, "failed to enable the user account");
+
+            //12- Reset Password- Mismatch Error
+            _userResponse = await _users.ResetPassword(_user.Email, "TestGoog!e3", "TestGoog!e2");
+            Assert.IsTrue(_userResponse.Status.Equals("error"), _userResponse.Msg);
+
+            //12- Reset Password- Mismatch and change password
+            _userResponse = await _users.ResetPassword(_user.Email, "TestGoog!e1", "TestGoog!e2");
+            Assert.IsTrue(_userResponse.Status.Equals("ok"), _userResponse.Msg);
+
+            //13- Login with New password
+            _userResponse = await _users.LoginByEmail(_user.Email, "TestGoog!e2");
+            Assert.IsTrue(_userResponse.Status.Equals("ok"), _userResponse.Msg);
+
+            //14- Login with invalid params
+            _userResponse = await _users.LoginByEmail(_user.Email, "");
+            Assert.IsTrue(_userResponse.Status.Equals("error"), _userResponse.Msg);
+
+            //15- Login with invalid email
+            _userResponse = await _users.LoginByEmail("123@", "TestGoog!e2");
+            Assert.IsTrue(_userResponse.Status.Equals("error"), _userResponse.Msg);
+
+            //16- Login with old password
+            _userResponse = await _users.LoginByEmail(_user.Email, "TestGoog!e1");
+            Assert.IsTrue(_userResponse.Status.Equals("error"), _userResponse.Msg);
+
+            //17- Login with New password...again
+            var loginemail = new LoginEmail();
+            loginemail.Email = _user.Email;
+            loginemail.Password = "TestGoog!e2";
+            _userResponse = await _users.LoginByEmail(loginemail);
+            Assert.IsTrue(_userResponse.Status.Equals("ok"), _userResponse.Msg);
+
             //7- Verify User Counts
             _userList = await _users.GetActiveUsers();
             Assert.IsTrue(_userList.Count > 0, "Failed to Retrived All Users");

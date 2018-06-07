@@ -112,11 +112,11 @@ namespace SpartanUserManagement
         public async Task<List<UserResponse>> GetActiveUsers()
         {
             _users = new List<UserResponse>();
-            var _errorTile = "UserManagementApi:GetAllUsers";
+            var _errorTitle = "UserManagementApi:GetAllUsers";
 
             if (string.IsNullOrWhiteSpace(ConnectionString))
             {
-                _logging.Error(_errorTile, "No Connection to db was found");
+                _logging.Error(_errorTitle, "No Connection to db was found");
                 return _users;
             }
 
@@ -134,7 +134,7 @@ namespace SpartanUserManagement
                 }
                 catch (Exception ex)
                 {
-                    _logging.Error(_errorTile, ex.ToString());
+                    _logging.Error(_errorTitle, ex.ToString());
                 }
 
                 return _users;
@@ -145,15 +145,15 @@ namespace SpartanUserManagement
         {
             var _userResponse = new UserResponse();
             var _user = new User();
-            var _errorTile = "UserManagementApi:GetUserById";
+            var _errorTitle = "UserManagementApi:GetUserById";
 
             //Id parameter check
             if (id == Guid.Empty)
-                return ResponseError_ModelView(_errorTile, "Id can not be empty");
+                return ResponseError_ModelView(_errorTitle, "Id can not be empty");
 
             //ConnectionString check
             if (string.IsNullOrWhiteSpace(ConnectionString))
-                return ResponseError_ModelView(_errorTile, "No Connection to db was found");
+                return ResponseError_ModelView(_errorTitle, "No Connection to db was found");
 
             return await Task.Run(() =>
             {
@@ -164,7 +164,7 @@ namespace SpartanUserManagement
                 }
                 else
                 {
-                    _userResponse = ResponseError_ModelView(_errorTile, "User was not found");
+                    _userResponse = ResponseError_ModelView(_errorTitle, "User was not found");
                 }                
                 return _userResponse;
             });
@@ -179,15 +179,15 @@ namespace SpartanUserManagement
         {
             var _userResponse = new UserResponse();
             var _user = new User();
-            var _errorTile = "UserManagementApi:GetUserByUserName";
+            var _errorTitle = "UserManagementApi:GetUserByUserName";
 
             //UserName parameter check
             if (string.IsNullOrWhiteSpace(username))
-                return ResponseError_ModelView(_errorTile, "UserName can not be empty");
+                return ResponseError_ModelView(_errorTitle, "UserName can not be empty");
 
             //ConnectionString check
             if (string.IsNullOrWhiteSpace(ConnectionString))
-                return ResponseError_ModelView(_errorTile, "No Connection to db was found");
+                return ResponseError_ModelView(_errorTitle, "No Connection to db was found");
 
             return await Task.Run(() =>
             {
@@ -198,7 +198,7 @@ namespace SpartanUserManagement
                 }
                 else
                 {
-                    _userResponse = ResponseError_ModelView(_errorTile, "User was not found");
+                    _userResponse = ResponseError_ModelView(_errorTitle, "User was not found");
                 }
                 return _userResponse;
             });
@@ -213,19 +213,19 @@ namespace SpartanUserManagement
         {
             var _userResponse = new UserResponse();
             var _user = new User();
-            var _errorTile = "UserManagementApi:GetUserByEmail";
+            var _errorTitle = "UserManagementApi:GetUserByEmail";
 
             //email parameter check
             if (string.IsNullOrWhiteSpace(email))
-                return ResponseError_ModelView(_errorTile, "email can not be empty");
+                return ResponseError_ModelView(_errorTitle, "email can not be empty");
 
             if (!email.IsValidEmail())
-                return ResponseError_ModelView(_errorTile, "email is not valid");
+                return ResponseError_ModelView(_errorTitle, "email is not valid");
 
 
             //ConnectionString check
             if (string.IsNullOrWhiteSpace(ConnectionString))
-                return ResponseError_ModelView(_errorTile, "No Connection to db was found");
+                return ResponseError_ModelView(_errorTitle, "No Connection to db was found");
 
             return await Task.Run(() =>
             {
@@ -236,7 +236,7 @@ namespace SpartanUserManagement
                 }
                 else
                 {
-                    _userResponse = ResponseError_ModelView(_errorTile, "User was not found");
+                    _userResponse = ResponseError_ModelView(_errorTitle, "User was not found");
                 }
                 return _userResponse;
             });
@@ -253,34 +253,34 @@ namespace SpartanUserManagement
 
             var _userResponse = new UserResponse();
             var _userTemp = new UserResponse();
-            var _errorTile = "UserManagementApi:AddUserByUserName";
+            var _errorTitle = "UserManagementApi:AddUserByUserName";
 
             //User parameter
             if (user == null)
-                return ResponseError_ModelView(_errorTile, "user parameter can not be empty/null");
+                return ResponseError_ModelView(_errorTitle, "user parameter can not be empty/null");
 
             //UserName parameter check
             if (string.IsNullOrWhiteSpace(user.UserName))
-                return ResponseError_ModelView(_errorTile, "UserName can not be empty");
+                return ResponseError_ModelView(_errorTitle, "UserName can not be empty");
 
             //UserName only one UserName can be added
             _userTemp = await GetUserByUserName(user.UserName);
             if (_userTemp.Status.Equals("ok") && !string.IsNullOrWhiteSpace(_userTemp.UserName))
-                return ResponseError_ModelView(_errorTile, "UserName already exist");
+                return ResponseError_ModelView(_errorTitle, "UserName already exist");
 
             //Email parameter check
             if (string.IsNullOrWhiteSpace(user.Email) || !user.Email.IsValidEmail())
-                return ResponseError_ModelView(_errorTile, "Invalid Email");
+                return ResponseError_ModelView(_errorTitle, "Invalid Email");
 
 
             //Password parameter check
             var passwValidationPhrase = GetPasswordValidationPhrase(user.PasswordHash);
             if (passwValidationPhrase != "VALID")
-                return ResponseError_ModelView(_errorTile, passwValidationPhrase);
+                return ResponseError_ModelView(_errorTitle, passwValidationPhrase);
 
             //Connection String
             if (string.IsNullOrWhiteSpace(ConnectionString))
-                return ResponseError_ModelView(_errorTile, "No Connection to db was found");
+                return ResponseError_ModelView(_errorTitle, "No Connection to db was found");
 
             return await Task.Run(() =>
             {
@@ -296,7 +296,7 @@ namespace SpartanUserManagement
 
                 //Make sure execute fuction suceeded
                 if (_rowsAffected <= 0)
-                    return ResponseError_ModelView(_errorTile, $"No records were inserted. Row Affected were {_rowsAffected}");
+                    return ResponseError_ModelView(_errorTitle, $"No records were inserted. Row Affected were {_rowsAffected}");
 
                 //Only show ModelView response
                 _userResponse = ResponseOk_ModelView(user);
@@ -315,29 +315,29 @@ namespace SpartanUserManagement
             var _userResponse = new UserResponse();
             var _userTemp = new UserResponse();
             
-            var _errorTile = "UserManagementApi:AddUserByUserName";
+            var _errorTitle = "UserManagementApi:AddUserByUserName";
 
             //User parameter
             if (user == null)
-                return ResponseError_ModelView(_errorTile, "user parameter can not be empty/null");
+                return ResponseError_ModelView(_errorTitle, "user parameter can not be empty/null");
 
             //Email parameter check
             if (string.IsNullOrWhiteSpace(user.Email) || !user.Email.IsValidEmail())
-                return ResponseError_ModelView(_errorTile, "Invalid Email");
+                return ResponseError_ModelView(_errorTitle, "Invalid Email");
 
             _userTemp = await GetUserByEmail(user.Email);
             if (_userTemp.Status.Equals("ok") && !string.IsNullOrWhiteSpace(_userTemp.Email))
-                return ResponseError_ModelView(_errorTile, "Email already exist");
+                return ResponseError_ModelView(_errorTitle, "Email already exist");
 
 
             //Password parameter check
             var passwValidationPhrase = GetPasswordValidationPhrase(user.PasswordHash);
             if (passwValidationPhrase != "VALID")
-                return ResponseError_ModelView(_errorTile, passwValidationPhrase);
+                return ResponseError_ModelView(_errorTitle, passwValidationPhrase);
 
             //Connection String
             if (string.IsNullOrWhiteSpace(ConnectionString))
-                return ResponseError_ModelView(_errorTile, "No Connection to db was found");
+                return ResponseError_ModelView(_errorTitle, "No Connection to db was found");
 
             return await Task.Run(() =>
             {
@@ -353,7 +353,7 @@ namespace SpartanUserManagement
 
                 //Make sure execute fuction suceeded
                 if (_rowsAffected <= 0)
-                    return ResponseError_ModelView(_errorTile, $"No records were inserted. Row Affected were {_rowsAffected}");
+                    return ResponseError_ModelView(_errorTitle, $"No records were inserted. Row Affected were {_rowsAffected}");
 
                 //Only show ModelView response
                 _userResponse = ResponseOk_ModelView(user);
@@ -364,7 +364,7 @@ namespace SpartanUserManagement
         private int UserInsertOrUpdate(User user)
         {
             int _rowsAffected = 0;
-            var _errorTile = "UserManagementApi:AddUser";
+            var _errorTitle = "UserManagementApi:AddUser";
             try
             {
                 using (IDbConnection db = new SqlConnection(ConnectionString))
@@ -420,7 +420,7 @@ namespace SpartanUserManagement
             }
             catch (Exception ex)
             {
-                _logging.Error(_errorTile, ex.ToString());
+                _logging.Error(_errorTitle, ex.ToString());
             }
 
             return _rowsAffected;
@@ -434,20 +434,20 @@ namespace SpartanUserManagement
         {
             int _rowsAffected = 0;
             bool _isValid = true;
-            var _errorTile = "UserManagementApi:DeleteAllUsers";
+            var _errorTitle = "UserManagementApi:DeleteAllUsers";
             var env = _env.GetUserVariable("Environment");
 
             //is Development?
             if (!env.Equals("Development"))
             {
-                ResponseError_ModelView(_errorTile, "No Connection to db was found");
+                ResponseError_ModelView(_errorTitle, "No Connection to db was found");
                 _isValid = false;
             }
 
             //Connection String
             if (string.IsNullOrWhiteSpace(ConnectionString))
             {
-                ResponseError_ModelView(_errorTile, "No Connection to db was found");
+                ResponseError_ModelView(_errorTitle, "No Connection to db was found");
                 _isValid = false;
             }
 
@@ -463,13 +463,13 @@ namespace SpartanUserManagement
                                 db.Open();
 
                             _rowsAffected = db.Execute(SqlQueries.DeleteAllUsers_Sql);
-                            _logging.Info(_errorTile, $"Users Rows Deleted {_rowsAffected}");
+                            _logging.Info(_errorTitle, $"Users Rows Deleted {_rowsAffected}");
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logging.Error(_errorTile, ex.ToString());
+                    _logging.Error(_errorTitle, ex.ToString());
                 }
             });
         }
@@ -491,20 +491,20 @@ namespace SpartanUserManagement
         {
             var _userResponse = new UserResponse();
             var _user = new User();
-            var _errorTile = "UserManagementApi:DisableUserAccount";
+            var _errorTitle = "UserManagementApi:DisableUserAccount";
             var _rowsAffected = 0;
 
             //Verify description parameter
             if (string.IsNullOrWhiteSpace(description))
-                return ResponseError_ModelView(_errorTile, "No description was found");
+                return ResponseError_ModelView(_errorTitle, "No description was found");
 
             //Verify id parameter
             if (id == Guid.Empty)
-                return ResponseError_ModelView(_errorTile, "User Id is was not found");
+                return ResponseError_ModelView(_errorTitle, "User Id is was not found");
 
             //ConnectionString check
             if (string.IsNullOrWhiteSpace(ConnectionString))
-                return ResponseError_ModelView(_errorTile, "No Connection to db was found");
+                return ResponseError_ModelView(_errorTitle, "No Connection to db was found");
 
 
             return await Task.Run(() =>
@@ -518,7 +518,7 @@ namespace SpartanUserManagement
                     _rowsAffected = UserInsertOrUpdate(_user);
 
                     if (_rowsAffected <= 0)
-                        return ResponseError_ModelView(_errorTile, $"No records were inserted. Row Affected were {_rowsAffected} User Id: {_user.Id.ToString()}");
+                        return ResponseError_ModelView(_errorTitle, $"No records were inserted. Row Affected were {_rowsAffected} User Id: {_user.Id.ToString()}");
                 }
                 _userResponse = ResponseOk_ModelView(_user);
                 return _userResponse;
@@ -531,19 +531,19 @@ namespace SpartanUserManagement
             var _desc = new System.Text.StringBuilder();
             var _user = new User();
             int _rowsAffected = 0;
-            var _errorTile = "UserManagementApi:LockUserAccount";
+            var _errorTitle = "UserManagementApi:LockUserAccount";
 
             //Verify description parameter
             if (string.IsNullOrWhiteSpace(description))
-                return ResponseError_ModelView(_errorTile, "No description was found");
+                return ResponseError_ModelView(_errorTitle, "No description was found");
 
             //Verify id parameter
             if (id == Guid.Empty)
-                return ResponseError_ModelView(_errorTile, "User Id is was not found");
+                return ResponseError_ModelView(_errorTitle, "User Id is was not found");
 
             //Connection String
             if (string.IsNullOrWhiteSpace(ConnectionString))
-                return ResponseError_ModelView(_errorTile, "No db connection found");
+                return ResponseError_ModelView(_errorTitle, "No db connection found");
 
             return await Task.Run(() =>
             {
@@ -556,13 +556,79 @@ namespace SpartanUserManagement
                     _rowsAffected = UserInsertOrUpdate(_user);
 
                     if (_rowsAffected <= 0)
-                        return ResponseError_ModelView(_errorTile, $"No records were inserted. Row Affected were {_rowsAffected} User Id: {_user.Id.ToString()}");
+                        return ResponseError_ModelView(_errorTitle, $"No records were inserted. Row Affected were {_rowsAffected} User Id: {_user.Id.ToString()}");
                 }
                 _userResponse = ResponseOk_ModelView(_user);
                 return _userResponse;
             });
         }
 
+        public async Task<UserResponse> ResetPassword(string email, string currentpassword, string confirmedpassword)
+        {
+            var _userResponse = new UserResponse();
+            var _errorTitle = "UserManagementApi:ResetPassword";
+            var _rowsAffected = 0;
+
+            //Verify email parameter
+            if (string.IsNullOrWhiteSpace(email))
+                return ResponseError_ModelView(_errorTitle, "No email was found");
+
+            //Verify current password parameter
+            if (string.IsNullOrWhiteSpace(currentpassword))
+                return ResponseError_ModelView(_errorTitle, "No current password parameter found");
+
+            //Verify confirmedpassword parameter
+            if (string.IsNullOrWhiteSpace(confirmedpassword))
+                return ResponseError_ModelView(_errorTitle, "No confirmed password  found");
+
+            //Verify db password against the current password
+            var _user = GetUser(SqlQueries.GetUserByEmail_Sql, new { Email = email });
+            if (_user == null || string.IsNullOrWhiteSpace(email))
+                return ResponseError_ModelView(_errorTitle, "User Account not Found");
+
+            //Verify Encrypted Key parameter
+            if (string.IsNullOrWhiteSpace(EncryptKey))
+                return ResponseError_ModelView(_errorTitle, "No Encrypted Key found. see documentation for additional details");
+
+            //Verify current passwords match
+            if (!_user.PasswordHash.DecryptString(EncryptKey).Equals(currentpassword))
+                return ResponseError_ModelView(_errorTitle, "current password does not match our system");
+
+            return await Task.Run(() =>
+            {
+                _user.PasswordHash = confirmedpassword.EncryptString(EncryptKey);
+                _user.AccountNotes = "password reset";
+                _user.AccessFailedCount = 0;
+                _user.LockEnabled = false;
+                _user.LockoutDescription = string.Empty;
+                _user.IsActive = true;
+                _user.DateCreated = DateTime.Now;
+                _rowsAffected = UserInsertOrUpdate(_user);
+
+                if (_rowsAffected <= 0)
+                    return ResponseError_ModelView(_errorTitle, $"reset password failed. Row Affected were {_rowsAffected} User Id: {_user.Id.ToString()}");
+
+                _userResponse = ResponseOk_ModelView(_user);
+                return _userResponse;
+            });
+        }
+        public async Task<UserResponse> ResetPassword(ResetPassword resetpassword)
+        {
+            var _userResponse = new UserResponse();
+            var _errorTitle = "UserManagementApi:ResetPassword";
+            if (resetpassword != null && (!string.IsNullOrWhiteSpace(resetpassword.Email)
+                && !string.IsNullOrWhiteSpace(resetpassword.ConfirmedPassword)
+                    && !string.IsNullOrWhiteSpace(resetpassword.Password)))
+            {
+                _userResponse = await ResetPassword(resetpassword.Email, resetpassword.Password, resetpassword.ConfirmedPassword);
+            }
+            else
+            {
+                _userResponse = ResponseError_ModelView(_errorTitle, "No Encrypted Key found. see documentation for additional details");
+            }
+
+            return _userResponse;
+        }
 
         private User GetUser(string spname, object param)
         {
@@ -686,9 +752,56 @@ namespace SpartanUserManagement
             return userResponse;
         }
 
-        public Task<UserResponse> ResetPassword(string email, string currentpassword, string confirmedpassword)
+        public async Task<UserResponse> LoginByEmail(string email, string password)
         {
-            throw new NotImplementedException();
+            var _userResponse = new UserResponse();
+            var _errorTitle = "UserManagementApi:LoginByEmail";
+
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+                return ResponseError_ModelView(_errorTitle, "No email/passoword params found");
+ 
+            //check email validation
+            if (!email.IsValidEmail())
+                return ResponseError_ModelView(_errorTitle, "Invalid Email");
+
+
+            return await Task.Run(() =>
+            {
+                var _user = GetUser(SqlQueries.GetUserByEmail_Sql, new { Email = email });
+                if (_user != null)
+                {
+                    if (!_user.PasswordHash.DecryptString(EncryptKey).Equals(password))
+                        return ResponseError_ModelView(_errorTitle, "Invalid Password");
+
+                    //TODO: Add permissions etc. to USER
+                    _userResponse = ResponseOk_ModelView(_user);
+                }
+                else
+                {
+                    _userResponse = ResponseError_ModelView(_errorTitle, "User was not found");
+                }
+
+                return _userResponse;
+            });
+          
+        }
+
+        public async Task<UserResponse> LoginByEmail(LoginEmail loginemail)
+        {
+            var _userResponse = new UserResponse();
+            var _errorTitle = "UserManagementApi:LoginByEmail";
+
+            if (loginemail != null && (!string.IsNullOrWhiteSpace(loginemail.Email)
+                    && !string.IsNullOrWhiteSpace(loginemail.Password)))
+            {
+                _userResponse = await LoginByEmail(loginemail.Email, loginemail.Password);
+            }
+            else
+            {
+                _userResponse = ResponseError_ModelView(_errorTitle, "No email/passoword params found");
+            }
+
+            return _userResponse;
         }
     }
 }
