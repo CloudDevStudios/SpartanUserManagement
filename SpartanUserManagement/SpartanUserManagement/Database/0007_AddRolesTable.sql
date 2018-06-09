@@ -13,6 +13,7 @@ GO
 CREATE TABLE [dbo].[Roles](
 	[Id] [uniqueidentifier] NOT NULL,
 	[RoleName] [nvarchar](50) NOT NULL,
+	[IsActive] [bit] NOT NULL,
  CONSTRAINT [PK_Roles] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC

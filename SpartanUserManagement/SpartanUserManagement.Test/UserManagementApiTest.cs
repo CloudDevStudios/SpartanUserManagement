@@ -3,6 +3,7 @@ using SpartanEnvironment;
 
 namespace SpartanUserManagement.Test
 {
+
     [TestClass]
     public class UserManagementApiTest
     {
@@ -28,15 +29,17 @@ namespace SpartanUserManagement.Test
             _env = new Environment();
             _users = new UserManagementApi();
             _env.SetUserVariable("Environment", "Development");
-            _user = new User();
+            _user = new User
+            {
 
-            //1- Create Dummy User
-            _user.Id = System.Guid.Parse("F037567D-54BC-4044-A6F4-66A7E85A0E34");
-            _user.UserName = "cperez";
-            _user.GivenName = "carlos";
-            _user.SurName = "perez";
-            _user.PasswordHash = "TestGoog!e1";
-            _user.Email = "cperez@donotreply.com";
+                //1- Create Dummy User
+                Id = System.Guid.Parse("F037567D-54BC-4044-A6F4-66A7E85A0E34"),
+                UserName = "cperez",
+                GivenName = "carlos",
+                SurName = "perez",
+                PasswordHash = "TestGoog!e1",
+                Email = "cperez@donotreply.com"
+            };
 
             //2- Delete records only for Development environment
             await _users.DeleteAllUsers();
@@ -115,15 +118,45 @@ namespace SpartanUserManagement.Test
             Assert.IsTrue(_userResponse.Status.Equals("error"), _userResponse.Msg);
 
             //17- Login with New password...again
-            var loginemail = new LoginEmail();
-            loginemail.Email = _user.Email;
-            loginemail.Password = "TestGoog!e2";
+            var loginemail = new LoginEmail
+            {
+                Email = _user.Email,
+                Password = "TestGoog!e2"
+            };
             _userResponse = await _users.LoginByEmail(loginemail);
             Assert.IsTrue(_userResponse.Status.Equals("ok"), _userResponse.Msg);
 
-            //7- Verify User Counts
+            //18- Login by UserName
+            var userlogin = new LoginUser
+            {
+                UserName = _user.UserName,
+                Password = "TestGoog!e2"
+            };
+            _userResponse = await _users.LoginByUserName(userlogin);
+            Assert.IsTrue(_userResponse.Status.Equals("ok"), _userResponse.Msg);
+
+            //19- Verify User Counts
             _userList = await _users.GetActiveUsers();
             Assert.IsTrue(_userList.Count > 0, "Failed to Retrived All Users");
+
+            //ROLES::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+            //20- Add Roles
+            var _roleName = "anonymous user";
+            var _role = await _users.AddRole(_roleName);
+            Assert.IsTrue(_role.RoleName.Equals(_roleName), $"unable to add new role: {_roleName}");
+
+            _roleName = "authenticated user";
+            _role = await _users.AddRole(_roleName);
+            Assert.IsTrue(_role.RoleName.Equals(_roleName), $"unable to add new role: {_roleName}");
+
+            _roleName = "administrator";
+            _role = await _users.AddRole(_roleName);
+            Assert.IsTrue(_role.RoleName.Equals(_roleName), $"unable to add new role: {_roleName}");
         }
+
+
+
     }
+
+
 }

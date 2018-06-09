@@ -20,7 +20,9 @@ namespace SpartanUserManagement
         Task<UserResponse> DeleteUserAccount(Guid id, string description);
         Task<UserResponse> LoginByEmail(string email, string password);
         Task<UserResponse> LoginByEmail(LoginEmail loginemail);
-
+        Task<UserResponse> LoginByUserName(string username, string password);
+        Task<UserResponse> LoginByUserName(LoginUser loginuser);
+        Task<Role> AddRole(string name, bool isActive = true);
 
     }
 }

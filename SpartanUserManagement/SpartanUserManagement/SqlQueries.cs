@@ -9,6 +9,11 @@ namespace SpartanUserManagement
         public static string GetActiveUsers_Sql = "User_GetActiveUsers";    
         public static string DeleteAllUsers_Sql = @"DELETE FROM USERS"; //Only for Development and UnitTesting
         public static string UserAddOrUpdate_Sql = "User_InsertOrUpdate";
+        public static string GetRoles_Sql = @"SELECT	[Id],[RoleName],[IsActive] FROM	[Roles];";
+        public static string GetRolesById_Sql = @"SELECT [Id], [RoleName], [IsActive] FROM [Roles] WHERE [Id] = @Id;";
+        public static string DeleteRoleById_Sql = @"DELETE FROM [Roles] WHERE [Id] = @Id;";
+        public static string UpdateRole_Sql = @"UPDATE [Roles] SET [RoleName] = @RoleName, [IsActive] = @IsActive WHERE	[Id] = @Id;";
+        public static string AddRole_Sql = @"INSERT INTO [Roles] ([Id],[RoleName],[IsActive]) VALUES (@Id, @RoleName, @IsActive );";
     }
 
 }

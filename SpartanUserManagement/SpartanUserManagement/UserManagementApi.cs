@@ -129,7 +129,7 @@ namespace SpartanUserManagement
                         if (db.State == ConnectionState.Closed)
                             db.Open();
 
-                        _users = db.Query<UserResponse>(SqlQueries.GetActiveUsers_Sql,null, commandType: CommandType.StoredProcedure).ToList();
+                        _users = db.Query<UserResponse>(SqlQueries.GetActiveUsers_Sql, null, commandType: CommandType.StoredProcedure).ToList();
                     }
                 }
                 catch (Exception ex)
@@ -165,7 +165,7 @@ namespace SpartanUserManagement
                 else
                 {
                     _userResponse = ResponseError_ModelView(_errorTitle, "User was not found");
-                }                
+                }
                 return _userResponse;
             });
         }
@@ -314,7 +314,7 @@ namespace SpartanUserManagement
 
             var _userResponse = new UserResponse();
             var _userTemp = new UserResponse();
-            
+
             var _errorTitle = "UserManagementApi:AddUserByUserName";
 
             //User parameter
@@ -474,6 +474,12 @@ namespace SpartanUserManagement
             });
         }
 
+        /// <summary>
+        /// Sets ActiveState to false
+        /// </summary>
+        /// <param name="id">userid</param>
+        /// <param name="description">details why to delete</param>
+        /// <returns></returns>
         public async Task<UserResponse> DeleteUserAccount(Guid id, string description)
         {
             return await SetActiveState(id, description, false);
@@ -525,6 +531,13 @@ namespace SpartanUserManagement
             });
         }
 
+        /// <summary>
+        /// Sets lock state to true or false
+        /// </summary>
+        /// <param name="id">userid</param>
+        /// <param name="description">details of setting the lock state</param>
+        /// <param name="isLocked">true or false</param>
+        /// <returns></returns>
         public async Task<UserResponse> SetLockState(Guid id, string description, bool isLocked)
         {
             var _userResponse = new UserResponse();
@@ -563,6 +576,13 @@ namespace SpartanUserManagement
             });
         }
 
+        /// <summary>
+        /// Resets Password Account
+        /// </summary>
+        /// <param name="email">user email</param>
+        /// <param name="currentpassword">current active password</param>
+        /// <param name="confirmedpassword">confirmed active account</param>
+        /// <returns>UserResponse</returns>
         public async Task<UserResponse> ResetPassword(string email, string currentpassword, string confirmedpassword)
         {
             var _userResponse = new UserResponse();
@@ -612,6 +632,12 @@ namespace SpartanUserManagement
                 return _userResponse;
             });
         }
+
+        /// <summary>
+        /// Resets Password Account
+        /// </summary>
+        /// <param name="resetpassword">ResetPassword model</param>
+        /// <returns>UserResponse</returns>
         public async Task<UserResponse> ResetPassword(ResetPassword resetpassword)
         {
             var _userResponse = new UserResponse();
@@ -630,6 +656,12 @@ namespace SpartanUserManagement
             return _userResponse;
         }
 
+        /// <summary>
+        /// Common helper to retrieve User from Database
+        /// </summary>
+        /// <param name="spname">Store Procedure Name</param>
+        /// <param name="param">Parameters Object</param>
+        /// <returns></returns>
         private User GetUser(string spname, object param)
         {
             var _user = new User();
@@ -652,6 +684,12 @@ namespace SpartanUserManagement
 
             return _user;
         }
+
+        /// <summary>
+        /// Common helper to validate password and settings 
+        /// </summary>
+        /// <param name="value">password to test</param>
+        /// <returns>errors or VALID string phrase</returns>
         private string GetPasswordValidationPhrase(string value)
         {
             if (value.Length < PasswordMin || value.Length > PasswordMax)
@@ -697,6 +735,13 @@ namespace SpartanUserManagement
 
             return "unknown state";
         }
+
+        /// <summary>
+        /// Common helper to response User - Errors
+        /// </summary>
+        /// <param name="title">name of error</param>
+        /// <param name="msg">description</param>
+        /// <returns>UserResponse</returns>
         private UserResponse ResponseError_ModelView(string title, string msg)
         {
             var _userResponse = new UserResponse();
@@ -705,53 +750,67 @@ namespace SpartanUserManagement
             _userResponse.Msg = msg;
             return _userResponse;
         }
+
+        /// <summary>
+        /// Common helper to Response User - Ok
+        /// </summary>
+        /// <param name="user">User</param>
+        /// <returns>UserResponse</returns>
         private UserResponse ResponseOk_ModelView(User user)
         {
-            UserResponse userResponse = new UserResponse();
-            userResponse.Status = "ok";
-            userResponse.Msg = "";
-            userResponse.Id = user.Id;
-            userResponse.AppName = user.AppName;
-            userResponse.UserName = user.UserName;
-            userResponse.Type = user.Type;
-            userResponse.Company = user.Company;
-            userResponse.GivenName = user.GivenName;
-            userResponse.MiddleName = user.MiddleName;
-            userResponse.SurName = user.SurName;
-            userResponse.NickName = user.NickName;
-            userResponse.FullName = user.FullName;
-            userResponse.Gender = user.Gender;
-            userResponse.MaritalStatus = user.MaritalStatus;
-            userResponse.Email = user.Email;
-            userResponse.EmailSignature = user.EmailSignature;
-            userResponse.EmailProvider = user.EmailProvider;
-            userResponse.JobTitle = user.JobTitle;
-            userResponse.BusinessPhone = user.BusinessPhone;
-            userResponse.HomePhone = user.HomePhone;
-            userResponse.MobilePhone = user.MobilePhone;
-            userResponse.FaxNumber = user.FaxNumber;
-            userResponse.Address = user.Address;
-            userResponse.Address1 = user.Address1;
-            userResponse.City = user.City;
-            userResponse.State = user.State;
-            userResponse.Province = user.Province;
-            userResponse.ZipCode = user.ZipCode;
-            userResponse.Country = user.Country;
-            userResponse.CountryOrigin = user.CountryOrigin;
-            userResponse.Citizenship = user.Citizenship;
-            userResponse.WebPage = user.WebPage;
-            userResponse.Avatar = user.Avatar;
-            userResponse.About = user.About;
-            userResponse.DoB = user.DoB;
-            userResponse.IsActive = user.IsActive;
-            userResponse.AccessFailedCount = user.AccessFailedCount;
-            userResponse.LockEnabled = user.LockEnabled;
-            userResponse.LockoutDescription = user.LockoutDescription;
-            userResponse.ReportsToId = user.ReportsToId;
-            userResponse.DateCreated = user.DateCreated;
+            UserResponse userResponse = new UserResponse
+            {
+                Status = "ok",
+                Msg = "",
+                Id = user.Id,
+                AppName = user.AppName,
+                UserName = user.UserName,
+                Type = user.Type,
+                Company = user.Company,
+                GivenName = user.GivenName,
+                MiddleName = user.MiddleName,
+                SurName = user.SurName,
+                NickName = user.NickName,
+                FullName = user.FullName,
+                Gender = user.Gender,
+                MaritalStatus = user.MaritalStatus,
+                Email = user.Email,
+                EmailSignature = user.EmailSignature,
+                EmailProvider = user.EmailProvider,
+                JobTitle = user.JobTitle,
+                BusinessPhone = user.BusinessPhone,
+                HomePhone = user.HomePhone,
+                MobilePhone = user.MobilePhone,
+                FaxNumber = user.FaxNumber,
+                Address = user.Address,
+                Address1 = user.Address1,
+                City = user.City,
+                State = user.State,
+                Province = user.Province,
+                ZipCode = user.ZipCode,
+                Country = user.Country,
+                CountryOrigin = user.CountryOrigin,
+                Citizenship = user.Citizenship,
+                WebPage = user.WebPage,
+                Avatar = user.Avatar,
+                About = user.About,
+                DoB = user.DoB,
+                IsActive = user.IsActive,
+                AccessFailedCount = user.AccessFailedCount,
+                LockEnabled = user.LockEnabled,
+                LockoutDescription = user.LockoutDescription,
+                ReportsToId = user.ReportsToId,
+                DateCreated = user.DateCreated
+            };
             return userResponse;
         }
 
+        /// <summary>
+        /// Validate Account via Email
+        /// </summary>
+        /// <param name="email">user email</param>
+        /// <param name="password">user password</param>
+        /// <returns></returns>
         public async Task<UserResponse> LoginByEmail(string email, string password)
         {
             var _userResponse = new UserResponse();
@@ -759,7 +818,7 @@ namespace SpartanUserManagement
 
             if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
                 return ResponseError_ModelView(_errorTitle, "No email/passoword params found");
- 
+
             //check email validation
             if (!email.IsValidEmail())
                 return ResponseError_ModelView(_errorTitle, "Invalid Email");
@@ -773,7 +832,6 @@ namespace SpartanUserManagement
                     if (!_user.PasswordHash.DecryptString(EncryptKey).Equals(password))
                         return ResponseError_ModelView(_errorTitle, "Invalid Password");
 
-                    //TODO: Add permissions etc. to USER
                     _userResponse = ResponseOk_ModelView(_user);
                 }
                 else
@@ -783,9 +841,14 @@ namespace SpartanUserManagement
 
                 return _userResponse;
             });
-          
+
         }
 
+        /// <summary>
+        /// Validate Account via Email
+        /// </summary>
+        /// <param name="loginemail">LoginEmail model</param>
+        /// <returns>UserResponse</returns>
         public async Task<UserResponse> LoginByEmail(LoginEmail loginemail)
         {
             var _userResponse = new UserResponse();
@@ -802,6 +865,100 @@ namespace SpartanUserManagement
             }
 
             return _userResponse;
+        }
+
+
+        public async Task<UserResponse> LoginByUserName(string username, string password)
+        {
+            var _userResponse = new UserResponse();
+            var _errorTitle = "UserManagementApi:LoginByUserName";
+
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+                return ResponseError_ModelView(_errorTitle, "No username/passoword params found");
+
+            return await Task.Run(() =>
+            {
+                var _user = GetUser(SqlQueries.GetUserByUserName_Sql, new { UserName = username });
+                if (_user != null)
+                {
+                    if (!_user.PasswordHash.DecryptString(EncryptKey).Equals(password))
+                        return ResponseError_ModelView(_errorTitle, "Invalid Password");
+
+                    //check for active or lock state
+                    _userResponse = ResponseOk_ModelView(_user);
+                }
+                else
+                {
+                    _userResponse = ResponseError_ModelView(_errorTitle, "User was not found");
+                }
+
+                return _userResponse;
+            });
+        }
+
+        public async Task<UserResponse> LoginByUserName(LoginUser loginuser)
+        {
+            var _userResponse = new UserResponse();
+            var _errorTitle = "UserManagementApi:LoginByUserName";
+
+            if (loginuser != null && (!string.IsNullOrWhiteSpace(loginuser.UserName)
+                    && !string.IsNullOrWhiteSpace(loginuser.Password)))
+            {
+                _userResponse = await LoginByUserName(loginuser.UserName, loginuser.Password);
+            }
+            else
+            {
+                _userResponse = ResponseError_ModelView(_errorTitle, "No username/passoword params found");
+            }
+
+            return _userResponse;
+        }
+
+
+        public async Task<Role> AddRole(string name, bool isActive = true)
+        {
+            var _role = new Role();
+            var _errorTitle = "UserManagementApi:AddRole";
+            var _rowsAffected = 0;
+            //check for name
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                _logging.Error(_errorTitle, "name params is empty");
+                return null;
+            }
+
+            //TODO::: check if the role exist
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    var id = Guid.NewGuid();
+                    using (IDbConnection db = new SqlConnection(ConnectionString))
+                    {
+                        if (db.State == ConnectionState.Closed)
+                            db.Open();
+
+                        _role.Id = id;
+                        _role.RoleName = name;
+                        _role.IsActive = isActive;
+                        _rowsAffected = db.Execute(SqlQueries.AddRole_Sql, _role);
+                        if (_rowsAffected <= 0)
+                        {
+                            _logging.Error(_errorTitle, "no rows were affected during role insertation");
+                            return null;
+                        }
+
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    _logging.Error(_errorTitle, ex.ToString());
+                    _role = null;
+                }
+                return _role;
+            });
         }
     }
 }
