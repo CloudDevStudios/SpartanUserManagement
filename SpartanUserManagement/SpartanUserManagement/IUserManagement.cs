@@ -23,6 +23,11 @@ namespace SpartanUserManagement
         Task<UserResponse> LoginByUserName(string username, string password);
         Task<UserResponse> LoginByUserName(LoginUser loginuser);
         Task<Role> AddRole(string name, bool isActive = true);
+        Task DeleteRole(Guid id);
+        Task DeleteRoles();
+        Task<Role> GetRole(Guid id);
+        Task<Role> GetRoleByName(string name);
+        Task<Role> UpdateRole(Guid id, string name, bool isActive);
 
     }
 }

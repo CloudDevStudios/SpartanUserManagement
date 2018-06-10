@@ -41,8 +41,9 @@ namespace SpartanUserManagement.Test
                 Email = "cperez@donotreply.com"
             };
 
-            //2- Delete records only for Development environment
+            //2- Delete records
             await _users.DeleteAllUsers();
+            await _users.DeleteRoles();
 
 
             //3- Add User Records
@@ -145,13 +146,41 @@ namespace SpartanUserManagement.Test
             var _role = await _users.AddRole(_roleName);
             Assert.IsTrue(_role.RoleName.Equals(_roleName), $"unable to add new role: {_roleName}");
 
+            //21- Add Roles
             _roleName = "authenticated user";
             _role = await _users.AddRole(_roleName);
             Assert.IsTrue(_role.RoleName.Equals(_roleName), $"unable to add new role: {_roleName}");
 
+            //22- make sure no duplicate names are added
+            _roleName = "authenticated user";
+            _role = await _users.AddRole(_roleName);
+            Assert.IsTrue(_role.RoleName.Equals(_roleName), $"unable to add new role: {_roleName}");
+
+            //23- Add Roles
             _roleName = "administrator";
             _role = await _users.AddRole(_roleName);
             Assert.IsTrue(_role.RoleName.Equals(_roleName), $"unable to add new role: {_roleName}");
+            var updateId = _role.Id;
+
+            //24- Add dummy role to delete
+            _roleName = "dummy";
+            _role = await _users.AddRole(_roleName);
+            Assert.IsTrue(_role.RoleName.Equals(_roleName), $"unable to add new role: {_roleName}");
+
+            _role = await _users.GetRole(_role.Id);
+            Assert.IsTrue(_role.IsActive, $"unable to get role: {_role.Id}");
+
+
+            _roleName = "dummy";
+            await _users.DeleteRole(_role.Id);
+
+            _role = await _users.GetRoleByName("dummy");
+            Assert.IsTrue(_role == null, $"unable to delete dummy");
+
+            //25- Update Role
+            _roleName = "administrator2";
+            _role = await _users.UpdateRole(updateId, "administrator2");
+            Assert.IsTrue(_role.RoleName.Equals(_roleName));
         }
 
 

@@ -927,7 +927,9 @@ namespace SpartanUserManagement
                 return null;
             }
 
-            //TODO::: check if the role exist
+            var _roleTemp = await GetRoleByName(name);
+            if (_roleTemp != null && !string.IsNullOrWhiteSpace(_roleTemp.RoleName))
+                return _roleTemp;
 
             return await Task.Run(() =>
             {
@@ -956,6 +958,172 @@ namespace SpartanUserManagement
                 {
                     _logging.Error(_errorTitle, ex.ToString());
                     _role = null;
+                }
+                return _role;
+            });
+        }
+
+        public async Task DeleteRole(Guid id)
+        {
+            var _rowsAffected = 0;
+            var _errorTitle = "UserManagementApi:DeleteRole";
+
+            if (id != Guid.Empty)
+            {
+                try
+                {
+                    await Task.Run(() =>
+                    {
+                        using (IDbConnection db = new SqlConnection(ConnectionString))
+                        {
+                            if (db.State == ConnectionState.Closed)
+                                db.Open();
+
+                            _rowsAffected = db.Execute(SqlQueries.DeleteRoleById_Sql, new { Id = id });
+                            if (_rowsAffected <= 0)
+                            {
+                                _logging.Error(_errorTitle, "no rows were affected during role deletion");
+                            }
+                        }
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _logging.Error(_errorTitle, ex.ToString());
+                }
+            }
+        }
+
+        public async Task DeleteRoles()
+        {
+            var _rowsAffected = 0;
+            var _errorTitle = "UserManagementApi:DeleteRoles";
+
+            try
+            {
+                await Task.Run(() =>
+                {
+                    using (IDbConnection db = new SqlConnection(ConnectionString))
+                    {
+                        if (db.State == ConnectionState.Closed)
+                            db.Open();
+
+                        _rowsAffected = db.Execute(SqlQueries.DeleteRoles_Sql, null);
+                        if (_rowsAffected <= 0)
+                        {
+                            _logging.Warn(_errorTitle, "no rows were affected during roles deletion");
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logging.Error(_errorTitle, ex.ToString());
+            }
+        }
+
+        public async Task<Role> GetRole(Guid id)
+        {
+            var _role = new Role();
+            var _errorTitle = "UserManagementApi:GetRole";
+
+            if (id != Guid.Empty)
+            {
+
+                return await Task.Run(() =>
+                {
+                    try
+                    {
+                        using (IDbConnection db = new SqlConnection(ConnectionString))
+                        {
+                            if (db.State == ConnectionState.Closed)
+                                db.Open();
+
+                            _role = db.QueryFirst<Role>(SqlQueries.GetRolesById_Sql, new { Id = id });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logging.Error(_errorTitle, ex.ToString());
+                        _role = null;
+                    }
+
+                    return _role;
+                });
+            }
+
+            return null;
+        }
+
+        public async Task<Role> GetRoleByName(string name)
+        {
+            var _role = new Role();
+            var _errorTitle = "UserManagementApi:GetRoleByName";
+
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+
+                return await Task.Run(() =>
+                {
+                    try
+                    {
+                        using (IDbConnection db = new SqlConnection(ConnectionString))
+                        {
+                            if (db.State == ConnectionState.Closed)
+                                db.Open();
+
+                            _role = db.QueryFirst<Role>(SqlQueries.GetRolesByName_Sql, new { RoleName = name });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logging.Error(_errorTitle, ex.ToString());
+                        _role = null;
+                    }
+
+                    return _role;
+                });
+            }
+
+            return null;
+        }
+
+        public async Task<Role> UpdateRole(Guid id, string name, bool isActive=true)
+        {
+            var _role = new Role();
+            var _errorTitle = "UserManagementApi:UpdateRole";
+            var _rowsAffected = 0;
+
+            if(id == Guid.Empty || string.IsNullOrWhiteSpace(name))
+                return null;
+
+            _role = await GetRole(id);
+            if (_role == null)
+                return null;
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    using (IDbConnection db = new SqlConnection(ConnectionString))
+                    {
+                        if (db.State == ConnectionState.Closed)
+                            db.Open();
+
+                        _role.RoleName = name;
+                        _role.IsActive = isActive;
+                        _rowsAffected = db.Execute(SqlQueries.UpdateRole_Sql, _role);
+                        if (_rowsAffected <= 0)
+                        {
+                            _logging.Error(_errorTitle, "no rows were affected during role update");
+                            return null;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _role = null;
+                    _logging.Error(_errorTitle, ex.ToString());
                 }
                 return _role;
             });
