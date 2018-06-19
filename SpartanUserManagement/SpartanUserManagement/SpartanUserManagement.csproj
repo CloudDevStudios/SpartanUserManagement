@@ -1,7 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <Authors>Carlos A. Perez</Authors>
+    <Description>(beta) Cross-platform User Management System.</Description>
+    <PackageProjectUrl>https://github.com/carlosap/SpartanUserManagement</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/carlosap/SpartanUserManagement</RepositoryUrl>
+    <PackageTags>spartan User Management System</PackageTags>
+    <PackageReleaseNotes>(beta) Cross-platform User Management System.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
