@@ -25,10 +25,9 @@ namespace SpartanUserManagement
         public string DevConnectionString { get; set; }
         public string StagingConnectionString { get; set; }
         public int Timeout { get; set; } = 20;
-
         public string EncryptKey { get; set; }
         public int PasswordMin { get; set; } = 6;
-        public int PasswordMax { get; set; } = 12;
+        public int PasswordMax { get; set; } = 15;
         public bool RequireUpperCase { get; set; } = true;
         public bool RequireLowerCase { get; set; } = true;
         public bool AvoidNoTwoSimilarChars { get; set; } = false;
@@ -95,6 +94,16 @@ namespace SpartanUserManagement
                         _configPath.SaveTo(this.SerializeToJson());
                         _logging.Error("UserManagementApi:GetDbEncryptKey", _errorMsg);
                     }
+
+                    //PasswordMin
+                    PasswordMin = cTemp.ContainsKey("PasswordMin") ? (int)cTemp.GetValue("PasswordMin") : 6;
+                    PasswordMax = cTemp.ContainsKey("PasswordMax") ? (int)cTemp.GetValue("PasswordMax") : 15;
+                    RequireUpperCase = cTemp.ContainsKey("RequireUpperCase") ? (bool)cTemp.GetValue("RequireUpperCase") : true;
+                    RequireLowerCase = cTemp.ContainsKey("RequireLowerCase") ? (bool)cTemp.GetValue("RequireLowerCase") : true;
+                    AvoidNoTwoSimilarChars = cTemp.ContainsKey("AvoidNoTwoSimilarChars") ? (bool)cTemp.GetValue("AvoidNoTwoSimilarChars") : false;
+                    RequireSpecialChars = cTemp.ContainsKey("RequireSpecialChars") ? (bool)cTemp.GetValue("RequireSpecialChars") : true;
+
+
 
                 }
                 catch (Exception ex)
@@ -243,6 +252,44 @@ namespace SpartanUserManagement
         }
 
         /// <summary>
+        /// Register common method to register users by email or username, password, and displayname
+        /// </summary>
+        /// <param name="emailorusername">user or email</param>
+        /// <param name="password">password</param>
+        /// <param name="displayname">display name</param>
+        /// <returns></returns>
+        public async Task<UserResponse> Register(string emailorusername, string password, string displayname)
+        {
+            var _userResponse = new UserResponse();
+            var _errorTitle = "UserManagementApi:Register";
+            var _user = new User();
+
+            if (string.IsNullOrWhiteSpace(emailorusername))
+                return ResponseError_ModelView(_errorTitle, "email/username can not be empty");
+
+            if (string.IsNullOrWhiteSpace(password))
+                return ResponseError_ModelView(_errorTitle, "password can not be empty");
+
+            return await Task.Run(async () =>
+            {
+                _user.DisplayName = displayname;
+                _user.PasswordHash = password;
+                if (emailorusername.IsValidEmail())
+                {
+                    _user.Email = emailorusername;
+                    _userResponse = await AddOrUpdateUserWithEmail(_user);
+                }
+                else
+                {
+                    _user.UserName = emailorusername;
+                    _userResponse = await AddOrUpdateUserWithUserName(_user);
+                }
+
+                return _userResponse;
+            });
+        }
+
+        /// <summary>
         /// Add new users. 
         /// UserName and Email is a requirement.
         /// </summary>
@@ -376,7 +423,12 @@ namespace SpartanUserManagement
                     {
                         user.Id,
                         user.AppName,
+                        user.AppSetting,
+                        user.AppTheme,
                         user.UserName,
+                        user.DisplayName,
+                        user.PhotoUrl,
+                        user.ShortCuts,
                         user.PasswordHash,
                         user.Type,
                         user.Company,
@@ -397,6 +449,7 @@ namespace SpartanUserManagement
                         user.FaxNumber,
                         user.Address,
                         user.Address1,
+                        user.ApartmentNumber,
                         user.City,
                         user.State,
                         user.Province,
@@ -764,7 +817,12 @@ namespace SpartanUserManagement
                 Msg = "",
                 Id = user.Id,
                 AppName = user.AppName,
+                AppSetting = user.AppSetting,
+                AppTheme = user.AppTheme,
                 UserName = user.UserName,
+                DisplayName = user.DisplayName,
+                PhotoUrl = user.PhotoUrl,
+                ShortCuts = user.ShortCuts,
                 Type = user.Type,
                 Company = user.Company,
                 GivenName = user.GivenName,
@@ -800,9 +858,37 @@ namespace SpartanUserManagement
                 LockEnabled = user.LockEnabled,
                 LockoutDescription = user.LockoutDescription,
                 ReportsToId = user.ReportsToId,
-                DateCreated = user.DateCreated
+                DateCreated = user.DateCreated,
+                Users = user.Users
             };
             return userResponse;
+        }
+
+        /// <summary>
+        /// Login common method to verify login using email or username
+        /// </summary>
+        /// <param name="emailorusername">username or email</param>
+        /// <param name="password">password</param>
+        /// <returns></returns>
+        public async Task<UserResponse> Login(string emailorusername, string password)
+        {
+            var _userResponse = new UserResponse();
+            var _errorTitle = "UserManagementApi:Login";
+            if (string.IsNullOrWhiteSpace(emailorusername) || string.IsNullOrWhiteSpace(password))
+                return ResponseError_ModelView(_errorTitle, "No email/passoword params found");
+
+            return await Task.Run(async () =>
+            {
+                if (emailorusername.IsValidEmail())
+                {
+                    _userResponse = await LoginByEmail(emailorusername, password);
+                }
+                else
+                {
+                    _userResponse = await LoginByUserName(emailorusername, password);
+                }
+                return _userResponse;
+            });
         }
 
         /// <summary>

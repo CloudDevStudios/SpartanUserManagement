@@ -181,10 +181,12 @@ namespace SpartanUserManagement.Test
             _roleName = "administrator2";
             _role = await _users.UpdateRole(updateId, "administrator2");
             Assert.IsTrue(_role.RoleName.Equals(_roleName));
+
+            //26- Register a New User with email (may consider deleting "user")
+            _userResponse = await _users.Register("perezca@donotreplay.com", "JP632tilla1!", "carlos perez");
+            Assert.IsTrue(_userResponse.Status.Equals("ok"), _userResponse.Msg);
+
         }
-
-
-
     }
 
 

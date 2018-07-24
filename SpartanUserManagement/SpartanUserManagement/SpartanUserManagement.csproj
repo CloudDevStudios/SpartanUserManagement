@@ -9,7 +9,7 @@
     <PackageTags>spartan User Management System</PackageTags>
     <PackageReleaseNotes>(beta) Cross-platform User Management System.</PackageReleaseNotes>
     <PackageIconUrl>https://raw.githubusercontent.com/carlosap/content/master/images/spartan_32x32.png</PackageIconUrl>
-    <Version>1.0.1</Version>
+    <Version>1.0.4</Version>
   </PropertyGroup>
 
   <ItemGroup>

@@ -11,7 +11,12 @@ GO
 create  PROCEDURE [dbo].[User_InsertOrUpdate]
 @Id uniqueidentifier,
 @AppName nvarchar(30),
+@AppSetting nvarchar(400),
+@AppTheme nvarchar(400),
 @UserName nvarchar(10),
+@DisplayName nvarchar(50),
+@PhotoUrl nvarchar(400),
+@ShortCuts nvarchar(300),
 @PasswordHash nvarchar(max),
 @Type nvarchar(20),
 @Company nvarchar(50),
@@ -32,6 +37,7 @@ create  PROCEDURE [dbo].[User_InsertOrUpdate]
 @FaxNumber nvarchar(15),
 @Address nvarchar(100),
 @Address1 nvarchar(100),
+@ApartmentNumber nvarchar(10),
 @City nvarchar(20),
 @State nvarchar(20),
 @Province nvarchar(30),
@@ -62,7 +68,12 @@ INSERT INTO [dbo].[Users]
            ,[RowId]
            ,[UpdateId]
            ,[AppName]
+           ,[AppSetting]
+           ,[AppTheme]
            ,[UserName]
+           ,[DisplayName]
+           ,[PhotoUrl]
+           ,[ShortCuts]
            ,[PasswordHash]
            ,[Type]
            ,[Company]
@@ -83,6 +94,7 @@ INSERT INTO [dbo].[Users]
            ,[FaxNumber]
            ,[Address]
            ,[Address1]
+		   ,[ApartmentNumber]
            ,[City]
            ,[State]
            ,[Province]
@@ -107,7 +119,12 @@ INSERT INTO [dbo].[Users]
 				@newID,
 				NULL,
 				@AppName,
+				@AppSetting,
+				@AppTheme,
 				@UserName,
+				@DisplayName,
+				@PhotoUrl,
+				@ShortCuts,
 				@PasswordHash,
 				@Type,
 				@Company,
@@ -128,6 +145,7 @@ INSERT INTO [dbo].[Users]
 				@FaxNumber,
 				@Address,
 				@Address1,
+				@ApartmentNumber,
 				@City,
 				@State,
 				@Province,
